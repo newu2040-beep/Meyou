@@ -26,10 +26,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.domain.model.Article
 import com.example.domain.model.Book
+import com.example.ui.components.BookArticleCoverThumbnail
 import com.example.ui.components.FeaturedContinueReadingCard
 import com.example.ui.components.TactileBookmarkButton
 import com.example.ui.theme.ExpressiveCardShape
 import com.example.ui.theme.ExpressivePillShape
+import com.example.ui.theme.LocalAppDimensions
 
 @Composable
 fun HomeScreen(
@@ -46,6 +48,7 @@ fun HomeScreen(
     onImportClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val dimensions = LocalAppDimensions.current
     val featuredBook = books.find { it.id == "book_atomic_habits" } ?: books.firstOrNull()
     val recommendedBooks = books.filter { it.id != "book_atomic_habits" }
     val popularArticles = articles.filter { it.isPopular }
@@ -54,8 +57,11 @@ fun HomeScreen(
         modifier = modifier
             .fillMaxSize()
             .testTag("home_screen"),
-        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+        contentPadding = PaddingValues(
+            horizontal = dimensions.screenHorizontalPadding,
+            vertical = if (dimensions.isCompact) 10.dp else 16.dp
+        ),
+        verticalArrangement = Arrangement.spacedBy(dimensions.sectionSpacing)
     ) {
         // Top Header with MEYOU Brand, Search, Import, and Profile
         item {
@@ -315,30 +321,31 @@ fun RecommendedBookCard(
                 .fillMaxWidth()
                 .padding(14.dp)
         ) {
-            // Book cover gradient area
+            // Book cover gradient / custom image area
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(120.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        Brush.linearGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.tertiary
-                            )
-                        )
-                    )
-                    .padding(10.dp)
             ) {
+                BookArticleCoverThumbnail(
+                    customCoverUri = book.customCoverUri,
+                    accentColorHex = book.accentColorHex,
+                    title = book.title,
+                    isArticle = false,
+                    cornerRadius = 12,
+                    modifier = Modifier.fillMaxSize()
+                )
+
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.Top
                 ) {
                     Surface(
                         shape = RoundedCornerShape(6.dp),
-                        color = Color.Black.copy(alpha = 0.3f)
+                        color = Color.Black.copy(alpha = 0.4f)
                     ) {
                         Text(
                             text = "eBook",
@@ -356,16 +363,6 @@ fun RecommendedBookCard(
                         modifier = Modifier.size(32.dp)
                     )
                 }
-
-                Text(
-                    text = book.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.align(Alignment.BottomStart)
-                )
             }
 
             Spacer(modifier = Modifier.height(10.dp))

@@ -3,9 +3,7 @@ package com.example
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import com.example.data.datastore.ReadingFont
-import com.example.data.datastore.ReadingPageTheme
-import com.example.data.datastore.UserPreferencesRepository
+import com.example.data.datastore.*
 import com.example.data.local.database.MeyouDatabase
 import com.example.data.repository.MeyouRepository
 import com.example.ui.viewmodel.MeyouViewModel
@@ -131,6 +129,34 @@ class MeyouRobolectricTest {
         assertEquals(22f, prefs.fontSizeSp)
         assertEquals(ReadingFont.SERIF, prefs.font)
         assertEquals(ReadingPageTheme.LAVENDER, prefs.pageTheme)
+    }
+
+    @Test
+    fun `profile customization and compact mode persist as expected`() = runTest {
+        preferencesRepository.updateUserProfile(
+            name = "Elena Rostova",
+            nickname = "@elena_reads",
+            age = 28,
+            gender = "Female",
+            avatarUri = null,
+            avatarPreset = "avatar_botanist",
+            bio = "Lifelong learner and book explorer"
+        )
+        preferencesRepository.setCompactMode(true)
+        preferencesRepository.setThemeScheme(AppThemeScheme.SAGE)
+        preferencesRepository.setThemeMode(ThemeModeOption.DARK)
+        preferencesRepository.setPaperTexture(PaperTexture.PARCHMENT)
+
+        val prefs = preferencesRepository.preferencesFlow.first()
+        assertEquals("Elena Rostova", prefs.userProfile.name)
+        assertEquals("@elena_reads", prefs.userProfile.nickname)
+        assertEquals(28, prefs.userProfile.age)
+        assertEquals("Female", prefs.userProfile.gender)
+        assertEquals("avatar_botanist", prefs.userProfile.avatarPreset)
+        assertTrue("Compact mode should be enabled", prefs.isCompactMode)
+        assertEquals(AppThemeScheme.SAGE, prefs.themeScheme)
+        assertEquals(ThemeModeOption.DARK, prefs.themeMode)
+        assertEquals(PaperTexture.PARCHMENT, prefs.paperTexture)
     }
 
     @Test

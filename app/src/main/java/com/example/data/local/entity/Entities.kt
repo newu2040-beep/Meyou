@@ -19,7 +19,8 @@ data class BookEntity(
     val isRecommended: Boolean,
     val isPopular: Boolean,
     val content: String,
-    val lastReadTimestamp: Long = System.currentTimeMillis()
+    val lastReadTimestamp: Long = System.currentTimeMillis(),
+    val customCoverUri: String? = null
 )
 
 @Entity(tableName = "articles")
@@ -39,7 +40,8 @@ data class ArticleEntity(
     val isPopular: Boolean,
     val content: String,
     val progressPercent: Float = 0f,
-    val lastReadTimestamp: Long = System.currentTimeMillis()
+    val lastReadTimestamp: Long = System.currentTimeMillis(),
+    val customCoverUri: String? = null
 )
 
 @Entity(tableName = "bookmarks")

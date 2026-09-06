@@ -121,5 +121,8 @@ fun getReaderFontFamily(readingFont: ReadingFont): FontFamily {
         ReadingFont.SERIF -> FontFamily.Serif
         ReadingFont.SANS -> FontFamily.SansSerif
         ReadingFont.SYSTEM -> FontFamily.Default
+        ReadingFont.MONOSPACE -> FontFamily.Monospace
+        ReadingFont.CURSIVE -> FontFamily.Cursive
+        ReadingFont.ROUNDED -> FontFamily.SansSerif
     }
 }

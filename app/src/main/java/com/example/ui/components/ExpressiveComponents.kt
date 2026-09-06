@@ -228,42 +228,14 @@ fun FeaturedContinueReadingCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Book visual cover thumbnail
-                Box(
-                    modifier = Modifier
-                        .size(width = 72.dp, height = 104.dp)
-                        .clip(RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp, topEnd = 12.dp, bottomEnd = 12.dp))
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color(0xFF6750A4),
-                                    Color(0xFF4F378B)
-                                )
-                            )
-                        )
-                        .padding(8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.MenuBook,
-                            contentDescription = null,
-                            tint = Color.White.copy(alpha = 0.85f),
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = book.title,
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                            color = Color.White,
-                            textAlign = TextAlign.Center,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
+                BookArticleCoverThumbnail(
+                    customCoverUri = book.customCoverUri,
+                    accentColorHex = book.accentColorHex,
+                    title = book.title,
+                    isArticle = false,
+                    cornerRadius = 10,
+                    modifier = Modifier.size(width = 72.dp, height = 104.dp)
+                )
 
                 Spacer(modifier = Modifier.width(16.dp))
 

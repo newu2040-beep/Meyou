@@ -15,7 +15,8 @@ data class Book(
     val isRecommended: Boolean,
     val isPopular: Boolean,
     val content: String,
-    val lastReadTimestamp: Long
+    val lastReadTimestamp: Long,
+    val customCoverUri: String? = null
 )
 
 data class Article(
@@ -34,7 +35,8 @@ data class Article(
     val isPopular: Boolean,
     val content: String,
     val progressPercent: Float,
-    val lastReadTimestamp: Long
+    val lastReadTimestamp: Long,
+    val customCoverUri: String? = null
 )
 
 data class BookmarkItem(

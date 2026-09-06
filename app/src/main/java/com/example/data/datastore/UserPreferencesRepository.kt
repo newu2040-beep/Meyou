@@ -11,10 +11,13 @@ import java.io.IOException
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "meyou_preferences")
 
-enum class ReadingFont(val label: String) {
-    SANS("Sans"),
-    SERIF("Serif"),
-    SYSTEM("System")
+enum class ReadingFont(val label: String, val subtitle: String = "") {
+    SERIF("Serif", "Editorial Classic"),
+    SANS("Sans", "Modern Clean"),
+    SYSTEM("System", "Device Default"),
+    MONOSPACE("Mono", "Typewriter Style"),
+    CURSIVE("Script", "Poetic Handcrafted"),
+    ROUNDED("Rounded", "Warm Humanist")
 }
 
 enum class ReadingPageTheme(val label: String) {
@@ -30,6 +33,40 @@ enum class ReadingWidth(val label: String) {
     WIDE("Wide")
 }
 
+enum class PaperTexture(val label: String, val description: String) {
+    SMOOTH("Smooth", "Pristine digital paper"),
+    KRAFT("Kraft", "Tactile recycled flecks"),
+    PARCHMENT("Parchment", "Vintage antique patina"),
+    LINEN("Linen", "Delicate woven texture"),
+    E_INK("E-Ink", "Ultra-matte anti-glare")
+}
+
+enum class AppThemeScheme(val label: String, val subtitle: String) {
+    VIOLET("Lavender Dream", "M3 Expressive Violet"),
+    SAGE("Forest Sage", "Earthy Moss & Pine"),
+    TERRACOTTA("Terracotta Amber", "Warm Clay & Ochre"),
+    OCEAN("Ocean Indigo", "Deep Marine & Sky"),
+    ROSE("Rose Quartz", "Burgundy & Blush"),
+    MONOCHROME("Onyx Slate", "Monochrome Minimalist"),
+    DYNAMIC("Dynamic System", "Material You Wallpaper")
+}
+
+enum class ThemeModeOption(val label: String) {
+    SYSTEM("System"),
+    LIGHT("Light"),
+    DARK("Dark")
+}
+
+data class UserProfile(
+    val name: String = "Meyou Reader",
+    val nickname: String = "@curator",
+    val age: Int = 24,
+    val gender: String = "Prefer not to say",
+    val avatarUri: String? = null,
+    val avatarPreset: String = "avatar_scholar",
+    val bio: String = "Curator & Avid Reader"
+)
+
 data class ReadingPreferences(
     val fontSizeSp: Float = 18f,
     val font: ReadingFont = ReadingFont.SERIF,
@@ -39,7 +76,12 @@ data class ReadingPreferences(
     val readingWidth: ReadingWidth = ReadingWidth.STANDARD,
     val isOnboardingComplete: Boolean = false,
     val isLibraryGrid: Boolean = true,
-    val isDarkMode: Boolean? = null // null means system
+    val isDarkMode: Boolean? = null, // null means system, true = dark, false = light
+    val themeMode: ThemeModeOption = ThemeModeOption.SYSTEM,
+    val themeScheme: AppThemeScheme = AppThemeScheme.VIOLET,
+    val isCompactMode: Boolean = false,
+    val paperTexture: PaperTexture = PaperTexture.SMOOTH,
+    val userProfile: UserProfile = UserProfile()
 )
 
 class UserPreferencesRepository(private val context: Context) {
@@ -54,6 +96,18 @@ class UserPreferencesRepository(private val context: Context) {
         val ONBOARDING_COMPLETE = booleanPreferencesKey("onboarding_complete")
         val LIBRARY_GRID = booleanPreferencesKey("library_grid")
         val DARK_MODE = stringPreferencesKey("dark_mode_preference")
+        val THEME_SCHEME = stringPreferencesKey("app_theme_scheme")
+        val COMPACT_MODE = booleanPreferencesKey("is_compact_mode")
+        val PAPER_TEXTURE = stringPreferencesKey("paper_texture")
+        
+        // Profile keys
+        val PROFILE_NAME = stringPreferencesKey("profile_name")
+        val PROFILE_NICKNAME = stringPreferencesKey("profile_nickname")
+        val PROFILE_AGE = intPreferencesKey("profile_age")
+        val PROFILE_GENDER = stringPreferencesKey("profile_gender")
+        val PROFILE_AVATAR_URI = stringPreferencesKey("profile_avatar_uri")
+        val PROFILE_AVATAR_PRESET = stringPreferencesKey("profile_avatar_preset")
+        val PROFILE_BIO = stringPreferencesKey("profile_bio")
     }
 
     val preferencesFlow: Flow<ReadingPreferences> = context.dataStore.data
@@ -78,6 +132,30 @@ class UserPreferencesRepository(private val context: Context) {
             val isGrid = preferences[PreferencesKeys.LIBRARY_GRID] ?: true
             val darkModePref = preferences[PreferencesKeys.DARK_MODE]
 
+            val themeMode = when (darkModePref) {
+                "DARK" -> ThemeModeOption.DARK
+                "LIGHT" -> ThemeModeOption.LIGHT
+                else -> ThemeModeOption.SYSTEM
+            }
+
+            val themeSchemeName = preferences[PreferencesKeys.THEME_SCHEME] ?: AppThemeScheme.VIOLET.name
+            val themeScheme = try { AppThemeScheme.valueOf(themeSchemeName) } catch (e: Exception) { AppThemeScheme.VIOLET }
+
+            val isCompact = preferences[PreferencesKeys.COMPACT_MODE] ?: false
+
+            val paperTextureName = preferences[PreferencesKeys.PAPER_TEXTURE] ?: PaperTexture.SMOOTH.name
+            val paperTexture = try { PaperTexture.valueOf(paperTextureName) } catch (e: Exception) { PaperTexture.SMOOTH }
+
+            val profile = UserProfile(
+                name = preferences[PreferencesKeys.PROFILE_NAME] ?: "Meyou Reader",
+                nickname = preferences[PreferencesKeys.PROFILE_NICKNAME] ?: "@curator",
+                age = preferences[PreferencesKeys.PROFILE_AGE] ?: 24,
+                gender = preferences[PreferencesKeys.PROFILE_GENDER] ?: "Prefer not to say",
+                avatarUri = preferences[PreferencesKeys.PROFILE_AVATAR_URI],
+                avatarPreset = preferences[PreferencesKeys.PROFILE_AVATAR_PRESET] ?: "avatar_scholar",
+                bio = preferences[PreferencesKeys.PROFILE_BIO] ?: "Curator & Avid Reader"
+            )
+
             ReadingPreferences(
                 fontSizeSp = fontSize,
                 font = font,
@@ -87,11 +165,16 @@ class UserPreferencesRepository(private val context: Context) {
                 readingWidth = readingWidth,
                 isOnboardingComplete = onboarding,
                 isLibraryGrid = isGrid,
-                isDarkMode = when (darkModePref) {
-                    "DARK" -> true
-                    "LIGHT" -> false
-                    else -> null
-                }
+                isDarkMode = when (themeMode) {
+                    ThemeModeOption.DARK -> true
+                    ThemeModeOption.LIGHT -> false
+                    ThemeModeOption.SYSTEM -> null
+                },
+                themeMode = themeMode,
+                themeScheme = themeScheme,
+                isCompactMode = isCompact,
+                paperTexture = paperTexture,
+                userProfile = profile
             )
         }
 
@@ -134,6 +217,52 @@ class UserPreferencesRepository(private val context: Context) {
             } else {
                 it[PreferencesKeys.DARK_MODE] = if (mode) "DARK" else "LIGHT"
             }
+        }
+    }
+
+    suspend fun setThemeMode(mode: ThemeModeOption) {
+        context.dataStore.edit {
+            when (mode) {
+                ThemeModeOption.SYSTEM -> it.remove(PreferencesKeys.DARK_MODE)
+                ThemeModeOption.LIGHT -> it[PreferencesKeys.DARK_MODE] = "LIGHT"
+                ThemeModeOption.DARK -> it[PreferencesKeys.DARK_MODE] = "DARK"
+            }
+        }
+    }
+
+    suspend fun setThemeScheme(scheme: AppThemeScheme) {
+        context.dataStore.edit { it[PreferencesKeys.THEME_SCHEME] = scheme.name }
+    }
+
+    suspend fun setCompactMode(isCompact: Boolean) {
+        context.dataStore.edit { it[PreferencesKeys.COMPACT_MODE] = isCompact }
+    }
+
+    suspend fun setPaperTexture(texture: PaperTexture) {
+        context.dataStore.edit { it[PreferencesKeys.PAPER_TEXTURE] = texture.name }
+    }
+
+    suspend fun updateUserProfile(
+        name: String,
+        nickname: String,
+        age: Int,
+        gender: String,
+        avatarUri: String?,
+        avatarPreset: String,
+        bio: String
+    ) {
+        context.dataStore.edit {
+            it[PreferencesKeys.PROFILE_NAME] = name
+            it[PreferencesKeys.PROFILE_NICKNAME] = nickname
+            it[PreferencesKeys.PROFILE_AGE] = age
+            it[PreferencesKeys.PROFILE_GENDER] = gender
+            if (avatarUri != null) {
+                it[PreferencesKeys.PROFILE_AVATAR_URI] = avatarUri
+            } else {
+                it.remove(PreferencesKeys.PROFILE_AVATAR_URI)
+            }
+            it[PreferencesKeys.PROFILE_AVATAR_PRESET] = avatarPreset
+            it[PreferencesKeys.PROFILE_BIO] = bio
         }
     }
 }

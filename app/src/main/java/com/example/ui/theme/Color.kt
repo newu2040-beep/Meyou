@@ -31,6 +31,36 @@ val MeyouMintDark = Color(0xFF2E6953)
 val MeyouMutedBlue = Color(0xFFE5EEF7)
 val MeyouMutedBlueDark = Color(0xFF3A5E78)
 
+// Theme 2: Forest Sage
+val MeyouSagePrimary = Color(0xFF2E6B4F)
+val MeyouSagePrimaryDark = Color(0xFF9CD4B6)
+val MeyouSageContainer = Color(0xFFD6E8DC)
+val MeyouSageContainerDark = Color(0xFF165237)
+
+// Theme 3: Terracotta Amber
+val MeyouTerracottaPrimary = Color(0xFF9E4822)
+val MeyouTerracottaPrimaryDark = Color(0xFFFFB59B)
+val MeyouTerracottaContainer = Color(0xFFFFDBD0)
+val MeyouTerracottaContainerDark = Color(0xFF7F310D)
+
+// Theme 4: Ocean Indigo
+val MeyouOceanPrimary = Color(0xFF1B5E86)
+val MeyouOceanPrimaryDark = Color(0xFF94CCF9)
+val MeyouOceanContainer = Color(0xFFCEE5FF)
+val MeyouOceanContainerDark = Color(0xFF00486D)
+
+// Theme 5: Rose Quartz
+val MeyouRosePrimary = Color(0xFF8C435A)
+val MeyouRosePrimaryDark = Color(0xFFFFB1C4)
+val MeyouRoseContainer = Color(0xFFFFD9E1)
+val MeyouRoseContainerDark = Color(0xFF702C42)
+
+// Theme 6: Monochrome Slate
+val MeyouMonoPrimary = Color(0xFF42474E)
+val MeyouMonoPrimaryDark = Color(0xFFC4C7CD)
+val MeyouMonoContainer = Color(0xFFE0E2E8)
+val MeyouMonoContainerDark = Color(0xFF2D3137)
+
 // Text and Outline
 val MeyouOnSurfaceLight = Color(0xFF1E1B22)
 val MeyouOnSurfaceVariantLight = Color(0xFF49454E)

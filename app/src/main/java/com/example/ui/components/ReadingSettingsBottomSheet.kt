@@ -20,13 +20,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.data.datastore.ReadingFont
-import com.example.data.datastore.ReadingPageTheme
-import com.example.data.datastore.ReadingPreferences
-import com.example.data.datastore.ReadingWidth
+import com.example.data.datastore.*
 import com.example.ui.theme.*
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun ReadingSettingsBottomSheet(
     preferences: ReadingPreferences,
@@ -36,6 +33,7 @@ fun ReadingSettingsBottomSheet(
     onPageThemeChange: (ReadingPageTheme) -> Unit,
     onBrightnessChange: (Float) -> Unit,
     onReadingWidthChange: (ReadingWidth) -> Unit,
+    onPaperTextureChange: ((PaperTexture) -> Unit)? = null,
     onDismissRequest: () -> Unit
 ) {
     ModalBottomSheet(
@@ -107,9 +105,10 @@ fun ReadingSettingsBottomSheet(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            Row(
+            FlowRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 ReadingFont.values().forEach { font ->
                     val isSelected = preferences.font == font
@@ -124,9 +123,7 @@ fun ReadingSettingsBottomSheet(
                             )
                         },
                         shape = ExpressivePillShape,
-                        modifier = Modifier
-                            .weight(1f)
-                            .testTag("font_chip_${font.name.lowercase()}")
+                        modifier = Modifier.testTag("font_chip_${font.name.lowercase()}")
                     )
                 }
             }
@@ -286,6 +283,40 @@ fun ReadingSettingsBottomSheet(
                             .weight(1f)
                             .testTag("width_chip_${width.name.lowercase()}")
                     )
+                }
+            }
+
+            if (onPaperTextureChange != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "Paper texture",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    com.example.data.datastore.PaperTexture.values().forEach { texture ->
+                        val isSelected = preferences.paperTexture == texture
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { onPaperTextureChange(texture) },
+                            label = {
+                                Text(
+                                    text = texture.label,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                )
+                            },
+                            shape = ExpressivePillShape,
+                            modifier = Modifier.testTag("sheet_texture_${texture.name.lowercase()}")
+                        )
+                    }
                 }
             }
         }

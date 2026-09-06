@@ -255,6 +255,55 @@ class MeyouRepository(
         return id
     }
 
+    suspend fun updateBookDetails(
+        id: String,
+        title: String,
+        author: String,
+        category: String,
+        synopsis: String,
+        accentColorHex: String,
+        customCoverUri: String?
+    ) {
+        bookDao.updateBookDetails(id, title, author, category, synopsis, accentColorHex, customCoverUri)
+    }
+
+    suspend fun updateBookCover(id: String, customCoverUri: String?) {
+        bookDao.updateBookCover(id, customCoverUri)
+    }
+
+    suspend fun updateArticleDetails(
+        id: String,
+        title: String,
+        author: String,
+        category: String,
+        summary: String,
+        accentColorHex: String,
+        customCoverUri: String?
+    ) {
+        articleDao.updateArticleDetails(id, title, author, category, summary, accentColorHex, customCoverUri)
+    }
+
+    suspend fun updateArticleCover(id: String, customCoverUri: String?) {
+        articleDao.updateArticleCover(id, customCoverUri)
+    }
+
+    suspend fun removeSampleData() {
+        bookDao.deleteSampleBooks()
+        articleDao.deleteSampleArticles()
+        bookmarkDao.deleteByItemId("book_atomic_habits")
+        bookmarkDao.deleteByItemId("article_future_of_work")
+    }
+
+    suspend fun restoreSampleData() {
+        bookDao.insertBooks(InitialData.books)
+        articleDao.insertArticles(InitialData.articles)
+    }
+
+    suspend fun clearAllData() {
+        bookDao.deleteAllBooks()
+        articleDao.deleteAllArticles()
+    }
+
     suspend fun deleteBook(id: String) {
         bookDao.deleteBook(id)
         bookmarkDao.deleteByItemId(id)
@@ -281,7 +330,8 @@ private fun BookEntity.toDomain() = Book(
     isRecommended = isRecommended,
     isPopular = isPopular,
     content = content,
-    lastReadTimestamp = lastReadTimestamp
+    lastReadTimestamp = lastReadTimestamp,
+    customCoverUri = customCoverUri
 )
 
 private fun ArticleEntity.toDomain() = Article(
@@ -300,7 +350,8 @@ private fun ArticleEntity.toDomain() = Article(
     isPopular = isPopular,
     content = content,
     progressPercent = progressPercent,
-    lastReadTimestamp = lastReadTimestamp
+    lastReadTimestamp = lastReadTimestamp,
+    customCoverUri = customCoverUri
 )
 
 private fun BookmarkEntity.toDomain() = BookmarkItem(

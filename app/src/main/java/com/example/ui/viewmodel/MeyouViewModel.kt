@@ -167,6 +167,45 @@ class MeyouViewModel(
         viewModelScope.launch { preferencesRepository.updateReadingWidth(width) }
     }
 
+    fun updateThemeScheme(scheme: AppThemeScheme) {
+        viewModelScope.launch { preferencesRepository.setThemeScheme(scheme) }
+    }
+
+    fun updateThemeMode(mode: ThemeModeOption) {
+        viewModelScope.launch { preferencesRepository.setThemeMode(mode) }
+    }
+
+    fun toggleCompactMode(isCompact: Boolean) {
+        viewModelScope.launch { preferencesRepository.setCompactMode(isCompact) }
+    }
+
+    fun updatePaperTexture(texture: PaperTexture) {
+        viewModelScope.launch { preferencesRepository.setPaperTexture(texture) }
+    }
+
+    fun updateUserProfile(
+        name: String,
+        nickname: String,
+        age: Int,
+        gender: String,
+        avatarUri: String?,
+        avatarPreset: String,
+        bio: String
+    ) {
+        viewModelScope.launch {
+            preferencesRepository.updateUserProfile(
+                name = name,
+                nickname = nickname,
+                age = age,
+                gender = gender,
+                avatarUri = avatarUri,
+                avatarPreset = avatarPreset,
+                bio = bio
+            )
+            _uiState.update { it.copy(userSnackbarMessage = "Profile updated successfully") }
+        }
+    }
+
     fun toggleBookmark(itemId: String, itemType: String, title: String, subtitle: String, category: String) {
         viewModelScope.launch {
             val added = repository.toggleBookmark(itemId, itemType, title, subtitle, category)
@@ -216,7 +255,22 @@ class MeyouViewModel(
             val results = if (query.isBlank()) {
                 emptyList()
             } else {
-                val bookResults = current.books.filter {
+                val books = if (current.books.isNotEmpty()) {
+                    current.books
+                } else {
+                    kotlinx.coroutines.runBlocking {
+                        try { repository.allBooks.first() } catch (_: Exception) { emptyList() }
+                    }
+                }
+                val articles = if (current.articles.isNotEmpty()) {
+                    current.articles
+                } else {
+                    kotlinx.coroutines.runBlocking {
+                        try { repository.allArticles.first() } catch (_: Exception) { emptyList() }
+                    }
+                }
+
+                val bookResults = books.filter {
                     it.title.contains(query, ignoreCase = true) ||
                     it.author.contains(query, ignoreCase = true) ||
                     it.synopsis.contains(query, ignoreCase = true)
@@ -232,7 +286,7 @@ class MeyouViewModel(
                     )
                 }
 
-                val articleResults = current.articles.filter {
+                val articleResults = articles.filter {
                     it.title.contains(query, ignoreCase = true) ||
                     it.author.contains(query, ignoreCase = true) ||
                     it.summary.contains(query, ignoreCase = true)
@@ -287,6 +341,50 @@ class MeyouViewModel(
                 Screen.ArticleReader(articleId)
             }
             onComplete?.invoke(targetScreen)
+        }
+    }
+
+    fun updateBookDetails(
+        id: String,
+        title: String,
+        author: String,
+        category: String,
+        synopsis: String,
+        accentColorHex: String,
+        customCoverUri: String?
+    ) {
+        viewModelScope.launch {
+            repository.updateBookDetails(id, title, author, category, synopsis, accentColorHex, customCoverUri)
+            _uiState.update { it.copy(userSnackbarMessage = "Book details & cover updated") }
+        }
+    }
+
+    fun updateArticleDetails(
+        id: String,
+        title: String,
+        author: String,
+        category: String,
+        summary: String,
+        accentColorHex: String,
+        customCoverUri: String?
+    ) {
+        viewModelScope.launch {
+            repository.updateArticleDetails(id, title, author, category, summary, accentColorHex, customCoverUri)
+            _uiState.update { it.copy(userSnackbarMessage = "Article details & cover updated") }
+        }
+    }
+
+    fun removeSampleData() {
+        viewModelScope.launch {
+            repository.removeSampleData()
+            _uiState.update { it.copy(userSnackbarMessage = "Sample data removed") }
+        }
+    }
+
+    fun restoreSampleData() {
+        viewModelScope.launch {
+            repository.restoreSampleData()
+            _uiState.update { it.copy(userSnackbarMessage = "Sample library restored") }
         }
     }
 

@@ -21,7 +21,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.data.datastore.UserPreferencesRepository
+import com.example.data.datastore.*
 import com.example.data.local.database.MeyouDatabase
 import com.example.data.repository.MeyouRepository
 import com.example.ui.components.ReadingSettingsBottomSheet
@@ -42,16 +42,25 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MEYOUTheme {
-                MeyouApp(viewModel = viewModel)
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            val isDarkTheme = when (uiState.preferences.themeMode) {
+                com.example.data.datastore.ThemeModeOption.DARK -> true
+                com.example.data.datastore.ThemeModeOption.LIGHT -> false
+                com.example.data.datastore.ThemeModeOption.SYSTEM -> androidx.compose.foundation.isSystemInDarkTheme()
+            }
+            MEYOUTheme(
+                themeScheme = uiState.preferences.themeScheme,
+                darkTheme = isDarkTheme,
+                isCompactMode = uiState.preferences.isCompactMode
+            ) {
+                MeyouApp(viewModel = viewModel, uiState = uiState)
             }
         }
     }
 }
 
 @Composable
-fun MeyouApp(viewModel: MeyouViewModel) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+fun MeyouApp(viewModel: MeyouViewModel, uiState: MeyouUiState) {
     val snackbarHostState = remember { SnackbarHostState() }
 
     // Show snackbar messages
@@ -105,7 +114,36 @@ fun MeyouApp(viewModel: MeyouViewModel) {
         ) {
             AnimatedContent(
                 targetState = uiState.currentScreen,
-                label = "screen_transition"
+                label = "screen_transition",
+                transitionSpec = {
+                    if (targetState is Screen.ArticleReader || targetState is Screen.EbookReader) {
+                        (fadeIn(animationSpec = androidx.compose.animation.core.tween(260)) +
+                                scaleIn(
+                                    initialScale = 0.94f,
+                                    animationSpec = androidx.compose.animation.core.spring(stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow)
+                                ))
+                            .togetherWith(
+                                fadeOut(animationSpec = androidx.compose.animation.core.tween(180)) +
+                                        scaleOut(targetScale = 0.96f)
+                            )
+                    } else if (initialState is Screen.ArticleReader || initialState is Screen.EbookReader) {
+                        (fadeIn(animationSpec = androidx.compose.animation.core.tween(240)) +
+                                scaleIn(initialScale = 1.04f))
+                            .togetherWith(
+                                fadeOut(animationSpec = androidx.compose.animation.core.tween(180)) +
+                                        scaleOut(targetScale = 0.94f)
+                            )
+                    } else {
+                        (fadeIn(animationSpec = androidx.compose.animation.core.tween(240)) +
+                                slideInHorizontally(
+                                    initialOffsetX = { width -> (width * 0.08f).toInt() },
+                                    animationSpec = androidx.compose.animation.core.spring(stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow)
+                                )).togetherWith(
+                            fadeOut(animationSpec = androidx.compose.animation.core.tween(180)) +
+                                    slideOutHorizontally(targetOffsetX = { width -> (-width * 0.08f).toInt() })
+                        )
+                    }
+                }
             ) { targetScreen ->
                 when (targetScreen) {
                     is Screen.Onboarding -> {
@@ -241,6 +279,9 @@ fun MeyouApp(viewModel: MeyouViewModel) {
                                         text = text,
                                         note = note
                                     )
+                                },
+                                onUpdateArticleDetails = { id, title, author, category, summary, colorHex, coverUri ->
+                                    viewModel.updateArticleDetails(id, title, author, category, summary, colorHex, coverUri)
                                 }
                             )
                         }
@@ -275,6 +316,9 @@ fun MeyouApp(viewModel: MeyouViewModel) {
                                 },
                                 onUpdateProgress = { page, progress ->
                                     viewModel.updateBookProgress(book.id, page, progress)
+                                },
+                                onUpdateBookDetails = { id, title, author, category, synopsis, colorHex, coverUri ->
+                                    viewModel.updateBookDetails(id, title, author, category, synopsis, colorHex, coverUri)
                                 }
                             )
                         }
@@ -296,8 +340,19 @@ fun MeyouApp(viewModel: MeyouViewModel) {
                     is Screen.Profile -> {
                         ProfileScreen(
                             stats = uiState.readingStats,
+                            preferences = uiState.preferences,
+                            onUpdateProfile = { name, nickname, age, gender, uri, preset, bio ->
+                                viewModel.updateUserProfile(name, nickname, age, gender, uri, preset, bio)
+                            },
+                            onUpdateThemeScheme = { viewModel.updateThemeScheme(it) },
+                            onUpdateThemeMode = { viewModel.updateThemeMode(it) },
+                            onToggleCompactMode = { viewModel.toggleCompactMode(it) },
+                            onUpdatePaperTexture = { viewModel.updatePaperTexture(it) },
+                            onUpdateFont = { viewModel.updateFont(it) },
                             onOpenStatistics = { viewModel.navigateTo(Screen.ReadingStatistics) },
-                            onOpenSettings = { viewModel.openReadingSettings() }
+                            onOpenSettings = { viewModel.openReadingSettings() },
+                            onRemoveSampleData = { viewModel.removeSampleData() },
+                            onRestoreSampleData = { viewModel.restoreSampleData() }
                         )
                     }
 
@@ -333,6 +388,7 @@ fun MeyouApp(viewModel: MeyouViewModel) {
             onPageThemeChange = { viewModel.updatePageTheme(it) },
             onBrightnessChange = { viewModel.updateBrightness(it) },
             onReadingWidthChange = { viewModel.updateReadingWidth(it) },
+            onPaperTextureChange = { viewModel.updatePaperTexture(it) },
             onDismissRequest = { viewModel.closeReadingSettings() }
         )
     }
@@ -344,12 +400,14 @@ fun MeyouBottomNavBar(
     onNavigate: (Screen) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isCompact = com.example.ui.theme.LocalAppDimensions.current.isCompact
+
     NavigationBar(
         modifier = modifier
             .navigationBarsPadding()
             .testTag("bottom_nav_bar"),
         containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = 6.dp
+        tonalElevation = if (isCompact) 3.dp else 6.dp
     ) {
         NavigationBarItem(
             selected = currentScreen is Screen.Home,

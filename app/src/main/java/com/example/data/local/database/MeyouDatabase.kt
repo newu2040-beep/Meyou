@@ -15,7 +15,7 @@ import com.example.data.local.entity.*
         HighlightEntity::class,
         ReadingSessionEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class MeyouDatabase : RoomDatabase() {

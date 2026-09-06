@@ -27,8 +27,20 @@ interface BookDao {
     @Query("DELETE FROM books WHERE id = :id")
     suspend fun deleteBook(id: String)
 
+    @Query("DELETE FROM books WHERE id LIKE 'book_%'")
+    suspend fun deleteSampleBooks()
+
+    @Query("DELETE FROM books")
+    suspend fun deleteAllBooks()
+
     @Update
     suspend fun updateBook(book: BookEntity)
+
+    @Query("UPDATE books SET title = :title, author = :author, category = :category, synopsis = :synopsis, accentColorHex = :accentColorHex, customCoverUri = :customCoverUri WHERE id = :id")
+    suspend fun updateBookDetails(id: String, title: String, author: String, category: String, synopsis: String, accentColorHex: String, customCoverUri: String?)
+
+    @Query("UPDATE books SET customCoverUri = :customCoverUri WHERE id = :id")
+    suspend fun updateBookCover(id: String, customCoverUri: String?)
 
     @Query("UPDATE books SET isBookmarked = :bookmarked WHERE id = :id")
     suspend fun updateBookmark(id: String, bookmarked: Boolean)
@@ -60,8 +72,20 @@ interface ArticleDao {
     @Query("DELETE FROM articles WHERE id = :id")
     suspend fun deleteArticle(id: String)
 
+    @Query("DELETE FROM articles WHERE id LIKE 'article_%'")
+    suspend fun deleteSampleArticles()
+
+    @Query("DELETE FROM articles")
+    suspend fun deleteAllArticles()
+
     @Update
     suspend fun updateArticle(article: ArticleEntity)
+
+    @Query("UPDATE articles SET title = :title, author = :author, category = :category, summary = :summary, accentColorHex = :accentColorHex, customCoverUri = :customCoverUri WHERE id = :id")
+    suspend fun updateArticleDetails(id: String, title: String, author: String, category: String, summary: String, accentColorHex: String, customCoverUri: String?)
+
+    @Query("UPDATE articles SET customCoverUri = :customCoverUri WHERE id = :id")
+    suspend fun updateArticleCover(id: String, customCoverUri: String?)
 
     @Query("UPDATE articles SET isBookmarked = :bookmarked WHERE id = :id")
     suspend fun updateBookmark(id: String, bookmarked: Boolean)

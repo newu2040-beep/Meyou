@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.domain.model.Article
 import com.example.domain.model.Book
+import com.example.ui.components.BookArticleCoverThumbnail
 import com.example.ui.components.TactileBookmarkButton
 import com.example.ui.components.WavyProgressIndicator
 import com.example.ui.theme.ExpressiveCardShape
@@ -290,30 +291,22 @@ fun LibraryBookGridItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(130.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(
-                        Brush.verticalGradient(
-                            listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)
-                        )
-                    )
-                    .padding(8.dp)
             ) {
+                BookArticleCoverThumbnail(
+                    customCoverUri = book.customCoverUri,
+                    accentColorHex = book.accentColorHex,
+                    title = book.title,
+                    isArticle = false,
+                    cornerRadius = 10,
+                    modifier = Modifier.fillMaxSize()
+                )
+
                 TactileBookmarkButton(
                     isBookmarked = book.isBookmarked,
                     onToggle = onBookmarkToggle,
                     activeColor = Color.White,
                     inactiveColor = Color.White.copy(alpha = 0.7f),
-                    modifier = Modifier.align(Alignment.TopEnd).size(30.dp)
-                )
-
-                Text(
-                    text = book.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.align(Alignment.BottomStart)
+                    modifier = Modifier.align(Alignment.TopEnd).padding(6.dp).size(30.dp)
                 )
             }
 
@@ -453,21 +446,14 @@ fun LibraryBookListItem(
                 .padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(width = 54.dp, height = 76.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.primary)
-                    .padding(6.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.MenuBook,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+            BookArticleCoverThumbnail(
+                customCoverUri = book.customCoverUri,
+                accentColorHex = book.accentColorHex,
+                title = book.title,
+                isArticle = false,
+                cornerRadius = 8,
+                modifier = Modifier.size(width = 54.dp, height = 76.dp)
+            )
 
             Spacer(modifier = Modifier.width(14.dp))
 
@@ -531,20 +517,14 @@ fun LibraryArticleListItem(
                 .padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(width = 54.dp, height = 76.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.secondaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.Article,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+            BookArticleCoverThumbnail(
+                customCoverUri = article.customCoverUri,
+                accentColorHex = article.accentColorHex,
+                title = article.title,
+                isArticle = true,
+                cornerRadius = 8,
+                modifier = Modifier.size(width = 54.dp, height = 76.dp)
+            )
 
             Spacer(modifier = Modifier.width(14.dp))
 
